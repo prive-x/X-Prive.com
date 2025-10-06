@@ -1,0 +1,16 @@
+{
+  "name": "X-PRIVE",
+  "short_name": "X-PRIVE",
+  "start_url": "/?homescreen=true",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
