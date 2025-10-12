@@ -63,16 +63,39 @@ const XPrive = () => {
     loadSitesFromFirebase();
   }, []);
 
-  const handleAddSite = () => {
-    if (newSiteName && newSiteUrl) {
-      const newSite = { name: newSiteName, url: newSiteUrl };
-      setSitesList([newSite, ...sitesList]);
-      createButton(newSiteName, newSiteUrl);
+  const handleAddSite = async () => {
+  if (newSiteName && newSiteUrl) {
+    try {
+      // salva o novo site no Firestore
+      await addDoc(collection(db, 'sites'), {
+        name: newSiteName,
+        url: newSiteUrl,
+      });
+
+      // limpa os campos e fecha o modal
       setNewSiteName('');
       setNewSiteUrl('');
       setModalOpen(false);
+
+      // recarrega os sites do banco pra atualizar a lista
+      const querySnapshot = await getDocs(collection(db, 'sites'));
+      const sitesArr = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        sitesArr.push({ name: data.name, url: data.url });
+      });
+      sitesArr.reverse(); // mais recentes primeiro
+      setSitesList(sitesArr);
+
+      // limpa os botões antigos e recria todos
+      const container = document.getElementById('button-container');
+      container.innerHTML = '';
+      sitesArr.forEach((site) => createButton(site.name, site.url));
+    } catch (error) {
+      console.error('Erro ao adicionar site:', error);
     }
-  };
+  }
+};
 
   const createButton = (name, url) => {
     const container = document.getElementById('button-container');
