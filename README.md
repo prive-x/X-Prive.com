@@ -1,40 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+🌌 X-PRIVE | Premium Dashboard & Gateway
+Bem-vindo ao X-PRIVE, uma plataforma de gerenciamento de atalhos e exploração web com interface de alta performance, focada em UX minimalista e segurança.
 
-## Getting Started
+🚀 Tecnologias Core
+Front-end: Next.js + Tailwind CSS
 
-First, run the development server:
+Animações: GSAP (GreenSock) para micro-interações e efeitos de transição.
 
-```bash
+Back-end: FastAPI (Python) + PostgreSQL
+
+Mobile: Suporte completo a PWA (Progressive Web App) com Service Workers.
+
+🛠️ Configuração do Ambiente
+1. Front-end (Next.js)
+Primeiro, instale as dependências:
+
+Bash
+
+npm install
+# ou
+yarn install
+Inicie o servidor de desenvolvimento:
+
+Bash
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Abra http://localhost:3000 para ver o resultado.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Back-end (FastAPI)
+Navegue até a pasta do servidor (se houver) e instale as dependências Python:
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+Bash
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+pip install fastapi uvicorn psycopg2-binary python-dotenv
+Configure o seu banco de dados no arquivo .env:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+Snippet de código
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+DATABASE_URL=sua_url_do_postgresql
+Inicie a API:
 
-## Learn More
+Bash
 
-To learn more about Next.js, take a look at the following resources:
+uvicorn main:app --reload
+🔒 Fluxo de Acesso
+O projeto possui um Password Gate de alta segurança na raiz:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+Entrada: Validação em tempo real com feedback tátil (shake effect) via GSAP.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Sessão: Integração com Service Workers para persistência e performance offline.
 
-## Deploy on Vercel
+Dashboard: Carregamento dinâmico de cards com favicons automáticos via API.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+📁 Estrutura de Pastas
+/pages/index.js - Portal de entrada (Password Gate).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+/pages/home.js - Dashboard principal X-PRIVE.
+
+/public - Manifesto PWA e Service Worker (sw.js).
+
+/styles - Configurações globais do Tailwind e fontes Inter/Outfit.
+
+🌐 Deploy
+A maneira mais fácil de implantar é usando a Vercel Platform:
+
+Conecte seu repositório GitHub.
+
+Configure as variáveis de ambiente (se houver).
+
+O Next.js detectará automaticamente as configurações de build.
+
+Desenvolvido com foco em performance e estética premium. 🛡️
