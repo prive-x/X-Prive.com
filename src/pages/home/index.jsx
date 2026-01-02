@@ -1,21 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import React, { useEffect, useState, useRef } from 'react';
 import gsap from 'gsap';
 import Head from 'next/head';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyCHMuTsq6KHAG6zJfw01LBHbwluSGJMMvM',
-  authDomain: 'unifyhub-2fedc.firebaseapp.com',
-  projectId: 'unifyhub-2fedc',
-  storageBucket: 'unifyhub-2fedc.firebasestorage.app',
-  messagingSenderId: '70946410932',
-  appId: '1:70946410932:web:61e66db07eb273c4fc62e1',
-  measurementId: 'G-220W75C40Z',
-};
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const API_URL = "http://localhost:8000";
 
 const XPrive = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,321 +11,225 @@ const XPrive = () => {
   const [newSiteUrl, setNewSiteUrl] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sitesList, setSitesList] = useState([]);
+  
+  const containerRef = useRef(null);
+
+ 
+  const fetchSites = async () => {
+    try {
+      const response = await fetch(`${API_URL}/sites`);
+      const data = await response.json();
+      setSitesList(data);
+    } catch (error) {
+      console.error("Erro ao carregar sites do banco:", error);
+    }
+  };
 
   useEffect(() => {
-    async function loadSitesFromFirebase() {
-      const container = document.getElementById('button-container');
-      container.innerHTML = ''; // limpa antes de adicionar
-      const querySnapshot = await getDocs(collection(db, 'sites'));
-      const sitesArr = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        sitesArr.push({ name: data.name, url: data.url });
-      });
-      sitesArr.reverse(); // mais recentes primeiro
-      setSitesList(sitesArr);
-      sitesArr.forEach((site) => createButton(site.name, site.url));
-      animateButtons();
-    }
-
-    function createButton(name, url) {
-      const container = document.getElementById('button-container');
-      const linkButton = document.createElement('a');
-      linkButton.className = 'button-link';
-      linkButton.href = url;
-      linkButton.target = '_blank';
-      linkButton.textContent = name;
-      container.appendChild(linkButton);
-    }
-
-    function animateButtons() {
-      gsap.from('.button-link', {
-        duration: 1,
-        opacity: 0,
-        y: 30,
-        stagger: 0.15,
-        ease: 'power3.out',
-      });
-    }
-
-    loadSitesFromFirebase();
+    fetchSites();
   }, []);
 
-  const handleAddSite = async () => {
-  if (newSiteName && newSiteUrl) {
-    try {
-      // salva o novo site no Firestore
-      await addDoc(collection(db, 'sites'), {
-        name: newSiteName,
-        url: newSiteUrl,
-      });
+  
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.site-card', 
+        { opacity: 0, scale: 0.8, y: 20 },
+        { duration: 0.5, opacity: 1, scale: 1, y: 0, stagger: 0.08, ease: "elastic.out(1, 0.75)" }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, [sitesList]);
 
-      // limpa os campos e fecha o modal
-      setNewSiteName('');
-      setNewSiteUrl('');
-      setModalOpen(false);
-
-      // recarrega os sites do banco pra atualizar a lista
-      const querySnapshot = await getDocs(collection(db, 'sites'));
-      const sitesArr = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        sitesArr.push({ name: data.name, url: data.url });
-      });
-      sitesArr.reverse(); // mais recentes primeiro
-      setSitesList(sitesArr);
-
-      // limpa os botões antigos e recria todos
-      const container = document.getElementById('button-container');
-      container.innerHTML = '';
-      sitesArr.forEach((site) => createButton(site.name, site.url));
-    } catch (error) {
-      console.error('Erro ao adicionar site:', error);
-    }
-  }
-};
-
-  const createButton = (name, url) => {
-    const container = document.getElementById('button-container');
-    const linkButton = document.createElement('a');
-    linkButton.className = 'button-link';
-    linkButton.href = url;
-    linkButton.target = '_blank';
-    linkButton.textContent = name;
-    container.prepend(linkButton); // adiciona no topo
-    gsap.from(linkButton, { duration: 0.8, opacity: 0, y: 20 });
-  };
-
-  const handleGoogleSearch = (e) => {
+  const handleAddSite = async (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
-      setSearchQuery('');
+    if (newSiteName && newSiteUrl) {
+      let formattedUrl = newSiteUrl.includes('://') ? newSiteUrl : `https://${newSiteUrl}`;
+      
+      try {
+        const response = await fetch(`${API_URL}/sites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newSiteName, url: formattedUrl }),
+        });
+        
+        if (response.ok) {
+          const addedSite = await response.json();
+          setSitesList([addedSite, ...sitesList]);
+          setNewSiteName('');
+          setNewSiteUrl('');
+          setModalOpen(false);
+        }
+      } catch (error) {
+        alert("Erro ao conectar com a API");
+      }
     }
   };
+
+  
+  const removeSite = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/sites/${id}`, { method: 'DELETE' });
+      
+      if (response.ok) {
+        gsap.to(`#card-${id}`, {
+          duration: 0.3,
+          opacity: 0,
+          scale: 0.5,
+          onComplete: () => setSitesList(sitesList.filter(s => s.id !== id))
+        });
+      }
+    } catch (error) {
+      alert("Erro ao deletar do banco");
+    }
+  };
+
+  const filteredSites = sitesList.filter(site =>
+    site.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <>
+    <div className="min-h-screen bg-[#08090a] text-slate-200 selection:bg-indigo-500/40">
       <Head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6a11cb" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js');
-                });
-              }
-            `,
-          }}
-        />
+        <title>X-Prive | Premium Dashboard</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Outfit:wght@400;600;900&display=swap" rel="stylesheet" />
       </Head>
 
-      <div style={{ width: '100%', maxWidth: '900px' }}>
-        <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #fff; padding: 1rem; display: flex; justify-content: center; min-height: 100vh; }
+      <style jsx global>{`
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+        .main-gradient { background: radial-gradient(circle at 50% -20%, #221a4d 0%, #08090a 60%); }
+        .card-blur {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .card-blur:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(99, 102, 241, 0.4);
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .search-glow:focus-within {
+          box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+          border-color: rgba(99, 102, 241, 0.5);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #08090a; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+      `}</style>
 
-          .header {
-            text-align: center;
-            font-size: clamp(2rem, 6vw, 3rem);
-            font-weight: bold;
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #6a11cb, #2575fc);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient 5s ease infinite;
-            letter-spacing: 0.2rem;
-            margin-bottom: 0.5rem;
-          }
-
-          .divider {
-            width: 120px;
-            height: 5px;
-            margin: 0 auto 2rem auto;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #ff7e5f, #feb47b, #6a11cb, #2575fc);
-            background-size: 300% 300%;
-            animation: gradient 5s ease infinite;
-          }
-
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-
-          .carousel-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            width: 100%;
-            max-width: 900px;
-            padding: 0.5rem;
-          }
-
-          .button-link {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 120px;
-            text-align: center;
-            border: none;
-            border-radius: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            text-decoration: none;
-            background: linear-gradient(135deg, #ff7e5f, #feb47b);
-            color: #fff;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
-            transition: transform 0.25s ease, background 0.25s ease;
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            letter-spacing: 0.05rem;
-          }
-
-          .button-link:hover {
-            transform: translateY(-5px) scale(1.03);
-            background: linear-gradient(135deg, #feb47b, #ff7e5f);
-          }
-
-          @media (max-width: 600px) {
-            .carousel-container { grid-template-columns: 1fr; }
-            .button-link { min-height: 100px; font-size: 1.1rem; }
-          }
-
-          .modal-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-          }
-
-          .modal-content {
-            background: #1f1f1f;
-            padding: 2rem;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            z-index: 10000;
-          }
-
-          .modal-content input {
-            width: 100%;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #121212;
-            color: #fff;
-          }
-
-          .modal-content button {
-            padding: 0.7rem 1.2rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background: #2575fc;
-            color: #fff;
-            font-weight: bold;
-          }
-
-          .top-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-          }
-
-          .top-bar form {
-            display: flex;
-            gap: 0.5rem;
-            flex: 1;
-          }
-
-          .top-bar form input {
-            flex: 1;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #121212;
-            color: #fff;
-          }
-
-          .top-bar form button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            background: #ff7e5f;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-          }
-
-          .top-bar button.publish-btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            background: #6a11cb;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: auto;
-          }
-        `}</style>
-
-        <div className="header">X-Prive</div>
-        <div className="divider"></div>
-
-        <div className="top-bar">
-          <form onSubmit={handleGoogleSearch}>
-            <input
-              type="text"
-              placeholder="Pesquisar no Google..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit">Pesquisar</button>
-          </form>
-
-          <button className="publish-btn" onClick={() => setModalOpen(true)}>
-            Publicar Site
+      <div className="main-gradient min-h-screen pb-20">
+        <nav className="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
+          <div className="font-outfit text-2xl font-black tracking-tighter bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent italic">
+            X-PRIVE.
+          </div>
+          <button 
+            onClick={() => setModalOpen(true)}
+            className="group relative flex items-center gap-2 bg-white text-black px-6 py-2.5 rounded-full font-bold hover:bg-indigo-500 hover:text-white transition-all duration-300 active:scale-95"
+          >
+            <span>Publicar</span>
+            <svg className="w-4 h-4 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
           </button>
-        </div>
+        </nav>
+
+        <main className="max-w-6xl mx-auto px-6 mt-12">
+          <section className="text-center mb-20">
+            <h2 className="font-outfit text-4xl md:text-6xl font-black mb-8 leading-tight">
+              Onde vamos <span className="text-indigo-500 text-glow">explorar</span> hoje?
+            </h2>
+            
+            <div className="max-w-2xl mx-auto relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+              <div className="relative flex items-center bg-[#0f1115] border border-white/10 rounded-2xl overflow-hidden search-glow">
+                <div className="pl-6 text-slate-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Pesquise seus atalhos..." 
+                  className="w-full bg-transparent py-5 px-4 outline-none text-lg"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && window.open(`https://google.com/search?q=${searchQuery}`, '_blank')}
+                />
+              </div>
+            </div>
+          </section>
+
+          <div ref={containerRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredSites.map((site) => (
+              <div key={site.id} id={`card-${site.id}`} className="site-card group relative">
+                <a 
+                  href={site.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="card-blur h-48 rounded-[2rem] flex flex-col items-center justify-center p-6 text-center"
+                >
+                  <div className="relative w-16 h-16 mb-4">
+                    <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    <img 
+                      src={`https://www.google.com/s2/favicons?sz=128&domain=${site.url}`} 
+                      alt="" 
+                      className="w-full h-full object-contain relative z-10 grayscale-[0.5] group-hover:grayscale-0 transition-all"
+                      onError={(e) => e.target.src = `https://ui-avatars.com/api/?name=${site.name}&background=random`}
+                    />
+                  </div>
+                  <h3 className="font-outfit font-semibold text-lg tracking-tight truncate w-full">{site.name}</h3>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Acessar Link</p>
+                </a>
+                
+                <button 
+                  onClick={() => removeSite(site.id)}
+                  className="absolute top-4 right-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </main>
 
         {modalOpen && (
-          <div className="modal-bg" onClick={() => setModalOpen(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Adicionar Novo Site</h3>
-              <input
-                type="text"
-                placeholder="Nome do site"
-                value={newSiteName}
-                onChange={(e) => setNewSiteName(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="URL do site"
-                value={newSiteUrl}
-                onChange={(e) => setNewSiteUrl(e.target.value)}
-              />
-              <button onClick={handleAddSite}>Adicionar</button>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setModalOpen(false)} />
+            <div className="relative bg-[#12141c] border border-white/10 p-10 rounded-[2.5rem] w-full max-w-lg shadow-2xl">
+              <h2 className="font-outfit text-3xl font-bold mb-2">Novo Portal</h2>
+              <form onSubmit={handleAddSite} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-indigo-400 ml-2">Título do Site</label>
+                  <input
+                    autoFocus
+                    type="text"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 outline-none focus:border-indigo-500 transition-colors"
+                    placeholder="Ex: Minha Dashboard"
+                    value={newSiteName}
+                    onChange={(e) => setNewSiteName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-indigo-400 ml-2">Endereço URL</label>
+                  <input
+                    type="text"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 outline-none focus:border-indigo-500 transition-colors"
+                    placeholder="dominio.com"
+                    value={newSiteUrl}
+                    onChange={(e) => setNewSiteUrl(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-4 pt-6">
+                  <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-4 font-bold text-slate-400 hover:text-white transition-colors">Cancelar</button>
+                  <button type="submit" className="flex-[2] bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-95">
+                    Confirmar Adição
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
-
-        <div className="carousel-container" id="button-container">
-          {/* Botões carregados pelo JS */}
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 
