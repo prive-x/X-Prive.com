@@ -1,72 +1,102 @@
-🌌 X-PRIVE | Premium Dashboard & Gateway
-Bem-vindo ao X-PRIVE, uma plataforma de gerenciamento de atalhos e exploração web com interface de alta performance, focada em UX minimalista e segurança.
+# 🌌 X-PRIVE | Premium Dashboard & Gateway
 
-🚀 Tecnologias Core
-Front-end: Next.js + Tailwind CSS
+Bem-vindo ao **X-PRIVE**, uma plataforma de gerenciamento de atalhos e exploração web com interface de alta performance, focada em UX minimalista e segurança.
 
-Animações: GSAP (GreenSock) para micro-interações e efeitos de transição.
+---
 
-Back-end: FastAPI (Python) + PostgreSQL
+## 🚀 Tecnologias Core
 
-Mobile: Suporte completo a PWA (Progressive Web App) com Service Workers.
+* **Front-end:** Next.js + Tailwind CSS
+* **Animações:** GSAP (GreenSock) para micro-interações e efeitos de transição
+* **Back-end:** FastAPI (Python) + PostgreSQL
+* **Mobile:** Suporte completo a PWA (Progressive Web App) com Service Workers
 
-🛠️ Configuração do Ambiente
-1. Front-end (Next.js)
-Primeiro, instale as dependências:
+---
 
-Bash
+## 🛠️ Configuração do Ambiente
 
+### 1️⃣ Front-end (Next.js)
+
+Instale as dependências:
+
+```bash
 npm install
 # ou
 yarn install
+```
+
 Inicie o servidor de desenvolvimento:
 
-Bash
-
+```bash
 npm run dev
-Abra http://localhost:3000 para ver o resultado.
+# ou
+yarn dev
+```
 
-2. Back-end (FastAPI)
-Navegue até a pasta do servidor (se houver) e instale as dependências Python:
+Acesse a aplicação em: [http://localhost:3000](http://localhost:3000)
 
-Bash
+### 2️⃣ Back-end (FastAPI)
 
-pip install fastapi uvicorn psycopg2-binary python-dotenv
-Configure o seu banco de dados no arquivo .env:
+Crie um ambiente virtual Python:
 
-Snippet de código
+```bash
+python -m venv venv
+# Ativar (Linux/Mac)
+source venv/bin/activate
+# Ativar (Windows)
+venv\Scripts\activate
+```
 
-DATABASE_URL=sua_url_do_postgresql
-Inicie a API:
+Instale as dependências:
 
-Bash
+```bash
+pip install fastapi uvicorn psycopg2-binary python-dotenv pydantic
+```
 
+Configure o banco de dados PostgreSQL criando um arquivo `.env` na raiz do back-end:
+
+```
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
+```
+
+> Substitua `usuario`, `senha` e `nome_do_banco` pelos dados do seu PostgreSQL.
+
+Inicie o servidor FastAPI:
+
+```bash
 uvicorn main:app --reload
-🔒 Fluxo de Acesso
-O projeto possui um Password Gate de alta segurança na raiz:
+```
 
-Entrada: Validação em tempo real com feedback tátil (shake effect) via GSAP.
+Acesse a documentação automática:
 
-Sessão: Integração com Service Workers para persistência e performance offline.
+* Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* Redoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-Dashboard: Carregamento dinâmico de cards com favicons automáticos via API.
+---
 
-📁 Estrutura de Pastas
-/pages/index.js - Portal de entrada (Password Gate).
+## 🔗 Estrutura do Projeto
 
-/pages/home.js - Dashboard principal X-PRIVE.
+```
+├── frontend/         # Código Next.js + Tailwind CSS
+├── backend/          # Código FastAPI + PostgreSQL
+├── README.md         # Documentação do projeto
+└── .env              # Variáveis de ambiente (não versionar)
+```
 
-/public - Manifesto PWA e Service Worker (sw.js).
+---
 
-/styles - Configurações globais do Tailwind e fontes Inter/Outfit.
+## 🛣️ Funcionalidades
 
-🌐 Deploy
-A maneira mais fácil de implantar é usando a Vercel Platform:
+* Dashboard premium com atalhos personalizáveis
+* Micro-interações e animações suaves com GSAP
+* Integração completa entre front-end e back-end
+* Suporte PWA e offline via Service Workers
+* API FastAPI para gerenciar dados de usuários e atalhos
 
-Conecte seu repositório GitHub.
+---
 
-Configure as variáveis de ambiente (se houver).
+## 📝 Notas
 
-O Next.js detectará automaticamente as configurações de build.
-
-Desenvolvido com foco em performance e estética premium. 🛡️
+* Mantenha o arquivo `.env` fora do controle de versão para proteger credenciais
+* Certifique-se que o PostgreSQL está ativo antes de iniciar o back-end
+* Next.js + Tailwind CSS permitem um front-end responsivo e moderno
