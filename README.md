@@ -1,40 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 🌌 X-PRIVE | Premium Dashboard & Gateway
 
-## Getting Started
+Bem-vindo ao **X-PRIVE**, uma plataforma de gerenciamento de atalhos e exploração web com interface de alta performance, focada em UX minimalista e segurança.
 
-First, run the development server:
+---
+
+## 🚀 Tecnologias Core
+
+* **Front-end:** Next.js + Tailwind CSS
+* **Animações:** GSAP (GreenSock) para micro-interações e efeitos de transição
+* **Back-end:** FastAPI (Python) + PostgreSQL
+* **Mobile:** Suporte completo a PWA (Progressive Web App) com Service Workers
+
+---
+
+## 🛠️ Configuração do Ambiente
+
+### 1️⃣ Front-end (Next.js)
+
+Instale as dependências:
+
+```bash
+npm install
+# ou
+yarn install
+```
+
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
+# ou
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse a aplicação em: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### 2️⃣ Back-end (FastAPI)
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+Crie um ambiente virtual Python:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```bash
+python -m venv venv
+# Ativar (Linux/Mac)
+source venv/bin/activate
+# Ativar (Windows)
+venv\Scripts\activate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Instale as dependências:
 
-## Learn More
+```bash
+pip install fastapi uvicorn psycopg2-binary python-dotenv pydantic
+```
 
-To learn more about Next.js, take a look at the following resources:
+Configure o banco de dados PostgreSQL criando um arquivo `.env` na raiz do back-end:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+```
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> Substitua `usuario`, `senha` e `nome_do_banco` pelos dados do seu PostgreSQL.
 
-## Deploy on Vercel
+Inicie o servidor FastAPI:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+uvicorn main:app --reload
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+Acesse a documentação automática:
+
+* Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* Redoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+---
+
+## 🔗 Estrutura do Projeto
+
+```
+├── frontend/         # Código Next.js + Tailwind CSS
+├── backend/          # Código FastAPI + PostgreSQL
+├── README.md         # Documentação do projeto
+└── .env              # Variáveis de ambiente (não versionar)
+```
+
+---
+
+## 🛣️ Funcionalidades
+
+* Dashboard premium com atalhos personalizáveis
+* Micro-interações e animações suaves com GSAP
+* Integração completa entre front-end e back-end
+* Suporte PWA e offline via Service Workers
+* API FastAPI para gerenciar dados de usuários e atalhos
+
+---
+
+## 📝 Notas
+
+* Mantenha o arquivo `.env` fora do controle de versão para proteger credenciais
+* Certifique-se que o PostgreSQL está ativo antes de iniciar o back-end
+* Next.js + Tailwind CSS permitem um front-end responsivo e moderno
